@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Летопись на Папирусе</title>
+    <title>Мой Ежедневник</title>
     <style>
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
         body {
-            background-color: #1a1613;
+            background-color: #1a1613; 
             font-family: 'Georgia', serif;
             margin: 0;
             padding: 0;
@@ -19,87 +19,63 @@
             height: 100vh;
             overflow: hidden;
             color: #2b1f13;
-            perspective: 1400px;
+            perspective: 2000px; /* Увеличенная глубина для реалистичного 3D-эффекта */
         }
-        .app-header {
-            background: #2b2118;
-            color: #d1b48c;
-            padding: 10px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            border-bottom: 2px solid #1c150f;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-        }
+        
+        /* КАЛЕНДАРЬ НА ТРИ МЕСЯЦА (ТОЛЬКО СВАЙП) */
         .calendar-section {
             background: #231a12;
-            padding: 8px 4px;
-            border-bottom: 1px solid #1c150f;
+            padding: 12px 4px;
+            border-bottom: 2px solid #1c150f;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 10;
         }
-        .calendar-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #d1b48c;
-            font-size: 14px;
-            font-style: italic;
-            margin-bottom: 6px;
-            padding: 0 10px;
-        }
-        .cal-btn {
-            background: #423224;
-            color: #d1b48c;
-            border: 1px solid #594431;
-            padding: 2px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-        }
+        
         .months-triple-container {
             display: flex;
-            gap: 8px;
+            gap: 12px;
             overflow-x: auto;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
-            padding: 4px;
+            padding: 4px 8px;
         }
+        /* Скрываем полосу прокрутки */
         .months-triple-container::-webkit-scrollbar {
             display: none;
         }
+
         .month-box {
             background: linear-gradient(135deg, #fbf7ee 0%, #f3e6cd 100%);
             border: 1px solid #cbb58f;
-            border-radius: 5px;
-            padding: 6px;
-            min-width: 165px;
+            border-radius: 6px;
+            padding: 8px;
+            min-width: 175px; 
             flex-shrink: 0;
-            box-shadow: inset 0 0 8px rgba(0,0,0,0.05), 0 3px 6px rgba(0,0,0,0.4);
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.05), 0 4px 8px rgba(0,0,0,0.4);
         }
         .month-name {
             text-align: center;
             font-weight: bold;
             color: #5c4324;
-            font-size: 11px;
-            margin-bottom: 4px;
+            font-size: 12px;
+            margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
+            gap: 2px;
             text-align: center;
         }
         .day-name {
             font-weight: bold;
             color: #a08566;
-            font-size: 8px;
-            padding-bottom: 2px;
+            font-size: 9px;
+            padding-bottom: 4px;
         }
         .day {
-            font-size: 10px;
+            font-size: 11px;
             color: #2b1f13;
             padding: 3px 0;
             cursor: pointer;
@@ -107,15 +83,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 16px;
-            width: 16px;
+            height: 18px;
+            width: 18px;
             margin: auto;
+            transition: background 0.2s;
         }
+        /* Сегодняшнее число (Винтажная рамка) */
         .day.today {
             background-color: rgba(92, 67, 36, 0.12);
             border: 1.5px solid #a08566;
             font-weight: bold;
         }
+        /* Активный выбранный день */
         .day.active {
             background-color: #2b1f13 !important;
             color: #fbf7ee !important;
@@ -124,51 +103,84 @@
         .day.empty {
             cursor: default;
         }
+
+        /* КНИЖНЫЕ СТРАНИЦЫ (НИЖНЯЯ ЧАСТЬ) */
         .page-wrapper {
             flex-grow: 1;
-            padding: 12px;
+            padding: 16px 12px;
             display: flex;
             flex-direction: column;
             background-color: #1a1613;
             position: relative;
+            overflow: hidden;
         }
         .swipe-hint {
             text-align: center;
             color: #826e5b;
             font-size: 11px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-style: italic;
         }
-        .diary-page {
+
+        /* Контейнер для 3D перелистывания книги */
+        .book-container {
             flex-grow: 1;
+            position: relative;
+            transform-style: preserve-3d;
+            width: 100%;
+            height: 100%;
+        }
+
+        .diary-page {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: linear-gradient(to bottom, #f7f2e4 0%, #fcf9f0 40%, #f5ecd8 100%);
             background-image: 
                 linear-gradient(rgba(160, 133, 102, 0.08) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(160, 133, 102, 0.03) 1px, transparent 1px),
                 linear-gradient(to bottom, #f7f2e4 0%, #fcf9f0 40%, #f5ecd8 100%);
             background-size: 100% 26px, 4px 100%, 100% 100%;
+            
             border: 1px solid #cbb58f;
-            padding: 20px 15px;
-            box-shadow: inset 0 0 20px rgba(160, 133, 102, 0.2), 0 12px 25px rgba(0,0,0,0.6);
+            padding: 22px 18px;
+            box-shadow: inset 0 0 20px rgba(160, 133, 102, 0.2), 0 10px 25px rgba(0,0,0,0.5);
+            
+            /* Эффект рваного края папируса */
             clip-path: polygon(
                 0% 2%, 5% 0%, 15% 1%, 25% 0%, 40% 2%, 55% 1%, 70% 0%, 85% 2%, 98% 0%, 100% 4%,
                 99% 15%, 100% 30%, 98% 45%, 100% 60%, 99% 75%, 100% 90%, 97% 100%, 85% 99%,
                 70% 100%, 50% 98%, 35% 99%, 15% 97%, 3% 100%, 0% 95%, 1% 80%, 0% 65%,
                 2% 50%, 0% 35%, 1% 15%
             );
+            
+            /* Натуральный разворот книги вокруг левой оси */
             transform-origin: left center;
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s;
+            backface-visibility: hidden;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s;
             touch-action: pan-y;
+            z-index: 5;
         }
+
+        /* Состояния анимации книжного листа */
+        .diary-page.flip-forward {
+            transform: rotateY(-140deg) scale(0.95);
+            opacity: 0;
+        }
+        .diary-page.flip-backward {
+            transform: rotateY(140deg) scale(0.95);
+            opacity: 0;
+        }
+
         .notebook-header {
             color: #423224;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
-            font-style: italic;
             border-bottom: 1px dashed rgba(160, 133, 102, 0.4);
-            padding-bottom: 6px;
-            margin-bottom: 12px;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
             text-align: center;
+            letter-spacing: 0.5px;
         }
         .textarea-container {
             flex-grow: 1;
@@ -190,158 +202,154 @@
 </head>
 <body>
 
-    <div class="app-header">Летопись Бронирований 2026</div>
-
+    <!-- Верхняя лента календаря (Свайпается пальцем) -->
     <div class="calendar-section">
-        <div class="calendar-nav">
-            <button class="cal-btn" onclick="moveMonths(-1)">&larr; Прошлые</button>
-            <div id="calendar-period-title">Май — Июль</div>
-            <button class="cal-btn" onclick="moveMonths(1)">Следующие &rarr;</button>
-        </div>
         <div class="months-triple-container" id="triple-container"></div>
     </div>
 
+    <!-- Разворот книги-ежедневника -->
     <div class="page-wrapper">
         <div class="swipe-hint">&larr; Листайте папирус пальцем как книгу &rarr;</div>
-        <div class="diary-page" id="diary-swipe-page">
-            <div class="notebook-header" id="date-title">Загрузка...</div>
-            <div class="textarea-container">
-                <textarea id="diary-text" placeholder="Начертайте планы на сей день..."></textarea>
+        <div class="book-container">
+            <div class="diary-page" id="diary-swipe-page">
+                <div class="notebook-header" id="date-title">Загрузка...</div>
+                <div class="textarea-container">
+                    <textarea id="diary-text" placeholder="Начертайте планы на сей день..."></textarea>
+                </div>
             </div>
         </div>
     </div>
 
 <script>
     const tripleContainer = document.getElementById('triple-container');
-    const periodTitle = document.getElementById('calendar-period-title');
     const dateTitle = document.getElementById('date-title');
     const diaryText = document.getElementById('diary-text');
     const pageElement = document.getElementById('diary-swipe-page');
     
     const year = 2026;
-    let currentStartMonth = 4; 
-    let currentSelectedDate = new Date(2026, 4, 25); 
+    let currentStartMonth = 0; 
+    let currentSelectedDate = new Date(2026, 4, 30); // Текущее число по умолчанию
 
     const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     const monthNamesGenitive = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
     const dayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+    const dayNamesFull = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
 
     const rightNow = new Date();
 
-    function renderMonth(monthIdx) {
-        const monthBox = document.createElement('div');
-        monthBox.className = 'month-box';
-        monthBox.id = `m-block-${monthIdx}`;
-
-        const mName = document.createElement('div');
-        mName.className = 'month-name';
-        mName.innerText = monthNames[monthIdx];
-        monthBox.appendChild(mName);
-
-        const daysGrid = document.createElement('div');
-        daysGrid.className = 'days-grid';
-
-        dayNames.forEach(name => {
-            const dName = document.createElement('div');
-            dName.className = 'day-name';
-            dName.innerText = name;
-            daysGrid.appendChild(dName);
-        });
-
-        const firstDay = new Date(year, monthIdx, 1).getDay();
-        const startingSpaces = firstDay === 0 ? 6 : firstDay - 1; 
-        const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
-
-        for (let i = 0; i < startingSpaces; i++) {
-            const emptyDiv = document.createElement('div');
-            emptyDiv.className = 'day empty';
-            daysGrid.appendChild(emptyDiv);
-        }
-
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dayDiv = document.createElement('div');
-            dayDiv.className = 'day';
-            dayDiv.innerText = day;
-
-            const dateKey = year + '-' + String(monthIdx + 1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
-            dayDiv.setAttribute('data-date', dateKey);
-
-            if (year === rightNow.getFullYear() && monthIdx === rightNow.getMonth() && day === rightNow.getDate()) {
-                dayDiv.classList.add('today');
-            }
-            if (currentSelectedDate.getDate() === day && currentSelectedDate.getMonth() === monthIdx) {
-                dayDiv.classList.add('active');
-            }
-
-            dayDiv.addEventListener('click', function() {
-                updatePageWithBookFlip(new Date(year, monthIdx, day), 'click');
-            });
-            daysGrid.appendChild(dayDiv);
-        }
-        monthBox.appendChild(daysGrid);
-        tripleContainer.appendChild(monthBox);
-    }
-
-    function renderTripleCalendar() {
+    // Генерация всех 12 месяцев в длинную свайп-ленту
+    function generateFullCalendar() {
         tripleContainer.innerHTML = "";
-        let endMonth = currentStartMonth + 2;
-        if (endMonth > 11) endMonth = 11;
-        
-        periodTitle.innerText = monthNames[currentStartMonth] + ' — ' + monthNames[endMonth];
-        
-        for (let i = currentStartMonth; i <= endMonth; i++) {
-            renderMonth(i);
+        for (let m = 0; m < 12; m++) {
+            const monthBox = document.createElement('div');
+            monthBox.className = 'month-box';
+            monthBox.id = `m-block-${m}`;
+
+            const mName = document.createElement('div');
+            mName.className = 'month-name';
+            mName.innerText = monthNames[m];
+            monthBox.appendChild(mName);
+
+            const daysGrid = document.createElement('div');
+            daysGrid.className = 'days-grid';
+
+            dayNames.forEach(name => {
+                const dName = document.createElement('div');
+                dName.className = 'day-name';
+                dName.innerText = name;
+                daysGrid.appendChild(dName);
+            });
+
+            const firstDay = new Date(year, m, 1).getDay();
+            const startingSpaces = firstDay === 0 ? 6 : firstDay - 1; 
+            const daysInMonth = new Date(year, m + 1, 0).getDate();
+
+            for (let i = 0; i < startingSpaces; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'day empty';
+                daysGrid.appendChild(emptyDiv);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day';
+                dayDiv.innerText = day;
+
+                const dateKey = year + '-' + String(m + 1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+                dayDiv.setAttribute('data-date', dateKey);
+
+                if (year === rightNow.getFullYear() && m === rightNow.getMonth() && day === rightNow.getDate()) {
+                    dayDiv.classList.add('today');
+                }
+                if (currentSelectedDate.getDate() === day && currentSelectedDate.getMonth() === m) {
+                    dayDiv.classList.add('active');
+                }
+
+                dayDiv.addEventListener('click', function() {
+                    updatePageWithNaturalFlip(new Date(year, m, day), 'click');
+                });
+                daysGrid.appendChild(dayDiv);
+            }
+            monthBox.appendChild(daysGrid);
+            tripleContainer.appendChild(monthBox);
         }
     }
 
-    function moveMonths(direction) {
-        currentStartMonth += direction;
-        if (currentStartMonth < 0) currentStartMonth = 0;
-        if (currentStartMonth > 9) currentStartMonth = 9; 
-        renderTripleCalendar();
-    }
-
-    function updatePageWithBookFlip(targetDate, actionType) {
-        if (targetDate > currentSelectedDate && actionType !== 'click') {
-            pageElement.style.transform = "rotateY(-130deg) scale(0.92)";
+    // Красивое и плавное книжное 3D-перелистывание страниц
+    function updatePageWithNaturalFlip(targetDate, direction) {
+        // Запускаем книжный поворот листа вокруг оси
+        if (direction === 'forward') {
+            pageElement.classList.add('flip-forward');
+        } else if (direction === 'backward') {
+            pageElement.classList.add('flip-backward');
         } else {
-            pageElement.style.transform = "rotateY(130deg) scale(0.92)";
+            // Если кликнули по календарю, выбираем направление автоматически
+            if (targetDate > currentSelectedDate) {
+                pageElement.classList.add('flip-forward');
+            } else {
+                pageElement.classList.add('flip-backward');
+            }
         }
-        pageElement.style.opacity = "0.05";
 
+        // Ждем пока лист долетит до середины, меняем текст и возвращаем обратно
         setTimeout(function() {
             currentSelectedDate = new Date(targetDate);
             const m = currentSelectedDate.getMonth();
             const d = currentSelectedDate.getDate();
+            const dayOfWeek = dayNamesFull[currentSelectedDate.getDay()];
 
-            if (m < currentStartMonth || m > currentStartMonth + 2) {
-                currentStartMonth = m;
-                if (currentStartMonth > 9) currentStartMonth = 9;
+            // Обновляем кружочки активности в календаре
+            document.querySelectorAll('.day.active').forEach(el => el.classList.remove('active'));
+            const dateKey = year + '-' + String(m + 1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+            const targetCalendarDay = document.querySelector(`[data-date="${dateKey}"]`);
+            if (targetCalendarDay) {
+                targetCalendarDay.classList.add('active');
             }
-            renderTripleCalendar();
 
+            // Плавный автоматический скролл календаря к нужному месяцу
             const targetBlock = document.getElementById('m-block-' + m);
             if (targetBlock) {
                 targetBlock.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
             }
 
-            const dateKey = year + '-' + String(m + 1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-            dateTitle.innerText = '— Свиток: ' + d + ' ' + monthNamesGenitive[m] + ' ' + year + ' года —';
+            // Выводим только день недели и чистую дату (без слова свиток)
+            dateTitle.innerText = dayOfWeek + ', ' + d + ' ' + monthNamesGenitive[m] + ' ' + year + ' г.';
             diaryText.value = localStorage.getItem(dateKey) || "";
 
-            pageElement.style.transform = "rotateY(0deg) scale(1)";
-            pageElement.style.opacity = "1";
-        }, 220);
+            // Снимаем классы анимации, чтобы новый лист плавно лег на место
+            pageElement.classList.remove('flip-forward', 'flip-backward');
+        }, 250); 
     }
 
     function changeDay(direction) {
         const newDate = new Date(currentSelectedDate);
         newDate.setDate(newDate.getDate() + direction);
         if (newDate.getFullYear() === year) {
-            updatePageWithBookFlip(newDate, direction > 0 ? 'forward' : 'backward');
+            updatePageWithNaturalFlip(newDate, direction > 0 ? 'forward' : 'backward');
         }
     }
 
+    // СЕНСОРНЫЕ СВАЙПЫ СТРАНИЦ
     let touchStartX = 0;
     pageElement.addEventListener('touchstart', function(e) {
         touchStartX = e.changedTouches[0].screenX;
@@ -349,23 +357,24 @@
     
     pageElement.addEventListener('touchend', function(e) {
         const dist = e.changedTouches[0].screenX - touchStartX;
-        if (dist < -50) changeDay(1);
-        if (dist > 50) changeDay(-1);
+        if (dist < -50) changeDay(1);  // Свайп влево -> книга листается вперед
+        if (dist > 50) changeDay(-1);  // Свайп вправо -> книга листается назад
     }, false);
 
+    // Автосохранение записей
     diaryText.addEventListener('input', function() {
         const dateKey = year + '-' + String(currentSelectedDate.getMonth() + 1).padStart(2,'0') + '-' + String(currentSelectedDate.getDate()).padStart(2,'0');
         localStorage.setItem(dateKey, diaryText.value);
     });
 
+    // Настройка стартовой даты (Сегодня)
     if (rightNow.getFullYear() === year) {
-        currentStartMonth = rightNow.getMonth();
-        if (currentStartMonth > 9) currentStartMonth = 9;
         currentSelectedDate = rightNow;
     }
     
-    renderTripleCalendar();
-    updatePageWithBookFlip(currentSelectedDate, 'click');
+    // Запуск
+    generateFullCalendar();
+    updatePageWithNaturalFlip(currentSelectedDate, 'click');
 </script>
 </body>
 </html>
