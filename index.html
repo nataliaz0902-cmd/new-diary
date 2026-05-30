@@ -1,0 +1,388 @@
+  <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мобильная Летопись: Три Месяца</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: #1a1613; /* Элегантный темный фон фона */
+            font-family: 'Georgia', serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            color: #2b1f13;
+            perspective: 1400px;
+        }
+        
+        /* ШАПКА */
+        .app-header {
+            background: #2b2118;
+            color: #d1b48c;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #1c150f;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        /* КАЛЕНДАРЬ НА ТРИ МЕСЯЦА С ПОДДЕРЖКОЙ СВАЙПА */
+        .calendar-section {
+            background: #231a12;
+            padding: 8px 4px;
+            border-bottom: 1px solid #1c150f;
+        }
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #d1b48c;
+            font-size: 14px;
+            font-style: italic;
+            margin-bottom: 6px;
+            padding: 0 10px;
+        }
+        .cal-btn {
+            background: #423224;
+            color: #d1b48c;
+            border: 1px solid #594431;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        /* Горизонтальная прокрутка для трех месяцев */
+        .months-triple-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            padding: 4px;
+        }
+        .months-triple-container::-webkit-scrollbar {
+            display: none; /* Скрываем скроллбар */
+        }
+
+        .month-box {
+            background: linear-gradient(135deg, #fbf7ee 0%, #f3e6cd 100%);
+            border: 1px solid #cbb58f;
+            border-radius: 5px;
+            padding: 6px;
+            min-width: 165px; /* Идеально, чтобы три месяца помещались и листались */
+            flex-shrink: 0;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.05), 0 3px 6px rgba(0,0,0,0.4);
+        }
+        .month-name {
+            text-align: center;
+            font-weight: bold;
+            color: #5c4324;
+            font-size: 11px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            text-align: center;
+        }
+        .day-name {
+            font-weight: bold;
+            color: #a08566;
+            font-size: 8px;
+            padding-bottom: 2px;
+        }
+        .day {
+            font-size: 10px;
+            color: #2b1f13;
+            padding: 3px 0;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 16px;
+            width: 16px;
+            margin: auto;
+        }
+        /* Сегодняшнее число (Винтажное тиснение) */
+        .day.today {
+            background-color: rgba(92, 67, 36, 0.12);
+            border: 1.5px solid #a08566;
+            font-weight: bold;
+        }
+        /* Активный день */
+        .day.active {
+            background-color: #2b1f13 !important;
+            color: #fbf7ee !important;
+            font-weight: bold;
+        }
+        .day.empty {
+            cursor: default;
+        }
+
+        /* БЛОКНОТ-ПАПИРУС */
+        .page-wrapper {
+            flex-grow: 1;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            background-color: #1a1613;
+            position: relative;
+        }
+        .swipe-hint {
+            text-align: center;
+            color: #826e5b;
+            font-size: 11px;
+            margin-bottom: 6px;
+            font-style: italic;
+        }
+
+        .diary-page {
+            flex-grow: 1;
+            /* Светлый папирус */
+            background: linear-gradient(to bottom, #f7f2e4 0%, #fcf9f0 40%, #f5ecd8 100%);
+            background-image: 
+                linear-gradient(rgba(160, 133, 102, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(160, 133, 102, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, #f7f2e4 0%, #fcf9f0 40%, #f5ecd8 100%);
+            background-size: 100% 26px, 4px 100%, 100% 100%;
+            
+            border: 1px solid #cbb58f;
+            padding: 20px 15px;
+            box-shadow: inset 0 0 20px rgba(160, 133, 102, 0.2), 0 12px 25px rgba(0,0,0,0.6);
+            
+            /* Эффект рваного края манускрипта */
+            clip-path: polygon(
+                0% 2%, 5% 0%, 15% 1%, 25% 0%, 40% 2%, 55% 1%, 70% 0%, 85% 2%, 98% 0%, 100% 4%,
+                99% 15%, 100% 30%, 98% 45%, 100% 60%, 99% 75%, 100% 90%, 97% 100%, 85% 99%,
+                70% 100%, 50% 98%, 35% 99%, 15% 97%, 3% 100%, 0% 95%, 1% 80%, 0% 65%,
+                2% 50%, 0% 35%, 1% 15
+            );
+            
+            /* Книжное перелистывание от левого края */
+            transform-origin: left center;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s;
+            touch-action: pan-y;
+        }
+
+        .notebook-header {
+            color: #423224;
+            font-size: 15px;
+            font-weight: bold;
+            font-style: italic;
+            border-bottom: 1px dashed rgba(160, 133, 102, 0.4);
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .textarea-container {
+            flex-grow: 1;
+        }
+        textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            line-height: 26px;
+            font-size: 15px;
+            font-family: 'Georgia', serif;
+            resize: none;
+            color: #2b1f13;
+            font-style: italic;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-header">Летопись Бронирований 2026</div>
+
+    <!-- Календарь на 3 месяца -->
+    <div class="calendar-section">
+        <div class="calendar-nav">
+            <button class="cal-btn" onclick="moveMonths(-1)">&larr; Прошлые</button>
+            <div id="calendar-period-title">Май — Июль</div>
+            <button class="cal-btn" onclick="moveMonths(1)">Следующие &rarr;</button>
+        </div>
+        <div class="months-triple-container" id="triple-container"></div>
+    </div>
+
+    <!-- Страница-книга папируса -->
+    <div class="page-wrapper">
+        <div class="swipe-hint">&larr; Листайте папирус пальцем как книгу &rarr;</div>
+        <div class="diary-page" id="diary-swipe-page">
+            <div class="notebook-header" id="date-title">Загрузка...</div>
+            <div class="textarea-container">
+                <textarea id="diary-text" placeholder="Начертайте планы на сей день..."></textarea>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const tripleContainer = document.getElementById('triple-container');
+    const periodTitle = document.getElementById('calendar-period-title');
+    const dateTitle = document.getElementById('date-title');
+    const diaryText = document.getElementById('diary-text');
+    const pageElement = document.getElementById('diary-swipe-page');
+    
+    const year = 2026;
+    let currentStartMonth = 4; // Начинаем с Мая (Май, Июнь, Июль)
+    let currentSelectedDate = new Date(2026, 4, 25); 
+
+    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+    const monthNamesGenitive = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+    const dayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
+    const rightNow = new Date();
+
+    function renderMonth(monthIdx) {
+        const monthBox = document.createElement('div');
+        monthBox.className = 'month-box';
+        monthBox.id = `m-block-${monthIdx}`;
+
+        const mName = document.createElement('div');
+        mName.className = 'month-name';
+        mName.innerText = monthNames[monthIdx];
+        monthBox.appendChild(mName);
+
+        const daysGrid = document.createElement('div');
+        daysGrid.className = 'days-grid';
+
+        dayNames.forEach(name => {
+            const dName = document.createElement('div');
+            dName.className = 'day-name';
+            dName.innerText = name;
+            daysGrid.appendChild(dName);
+        });
+
+        const firstDay = new Date(year, monthIdx, 1).getDay();
+        const startingSpaces = firstDay === 0 ? 6 : firstDay - 1; 
+        const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
+
+        for (let i = 0; i < startingSpaces; i++) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'day empty';
+            daysGrid.appendChild(emptyDiv);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'day';
+            dayDiv.innerText = day;
+
+            const dateKey = `${year}-${String(monthIdx + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            dayDiv.setAttribute('data-date', dateKey);
+
+            if (year === rightNow.getFullYear() && monthIdx === rightNow.getMonth() && day === rightNow.getDate()) {
+                dayDiv.classList.add('today');
+            }
+            if (currentSelectedDate.getDate() === day && currentSelectedDate.getMonth() === monthIdx) {
+                dayDiv.classList.add('active');
+            }
+
+            dayDiv.addEventListener('click', () => updatePageWithBookFlip(new Date(year, monthIdx, day), 'click'));
+            daysGrid.appendChild(dayDiv);
+        }
+        monthBox.appendChild(daysGrid);
+        tripleContainer.appendChild(monthBox);
+    }
+
+    function renderTripleCalendar() {
+        tripleContainer.innerHTML = "";
+        let endMonth = currentStartMonth + 2;
+        if (endMonth > 11) endMonth = 11;
+        
+        periodTitle.innerText = `${monthNames[currentStartMonth]} — ${monthNames[endMonth]}`;
+        
+        for (let i = currentStartMonth; i <= endMonth; i++) {
+            renderMonth(i);
+        }
+    }
+
+    function moveMonths(direction) {
+        currentStartMonth += direction;
+        if (currentStartMonth < 0) currentStartMonth = 0;
+        if (currentStartMonth > 9) currentStartMonth = 9; // Чтобы не выходить за Декабрь
+        renderTripleCalendar();
+    }
+
+    function updatePageWithBookFlip(targetDate, actionType) {
+        if (targetDate > currentSelectedDate && actionType !== 'click') {
+            pageElement.style.transform = "rotateY(-130deg) scale(0.92)";
+        } else {
+            pageElement.style.transform = "rotateY(130deg) scale(0.92)";
+        }
+        pageElement.style.opacity = "0.05";
+
+        setTimeout(() => {
+            currentSelectedDate = new Date(targetDate);
+            const m = currentSelectedDate.getMonth();
+            const d = currentSelectedDate.getDate();
+
+            if (m < currentStartMonth || m > currentStartMonth + 2) {
+                currentStartMonth = m;
+                if (currentStartMonth > 9) currentStartMonth = 9;
+            }
+            renderTripleCalendar();
+
+            // Автоматический скролл к выбранному месяцу в ленте на мобильном
+            const targetBlock = document.getElementById(`m-block-${m}`);
+            if (targetBlock) {
+                targetBlock.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+
+            const dateKey = `${year}-${String(m + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            dateTitle.innerText = `— Свиток: ${d} ${monthNamesGenitive[m]} ${year} года —`;
+            diaryText.value = localStorage.getItem(dateKey) || "";
+
+            pageElement.style.transform = "rotateY(0deg) scale(1)";
+            pageElement.style.opacity = "1";
+        }, 220);
+    }
+
+    function changeDay(direction) {
+        const newDate = new Date(currentSelectedDate);
+        newDate.setDate(newDate.getDate() + direction);
+        if (newDate.getFullYear() === year) updatePageWithBookFlip(newDate, direction > 0 ? 'forward' : 'backward');
+    }
+
+    // СВАЙПЫ
+    let touchStartX = 0;
+    pageElement.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, false);
+    pageElement.addEventListener('touchend', e => {
+        const dist = e.changedTouches[0].screenX - touchStartX;
+        if (dist < -50) changeDay(1);
+        if (dist > 50) changeDay(-1);
+    }, false);
+
+    diaryText.addEventListener('input', () => {
+        const dateKey = `${year}-${String(currentSelectedDate.getMonth() + 1).padStart(2,'0')}-${String(currentSelectedDate.getDate()).padStart(2,'0')}`;
+        localStorage.setItem(dateKey, diaryText.value);
+    });
+
+    if (rightNow.getFullYear() === year) {
+        currentStartMonth = rightNow.getMonth();
+        if (currentStartMonth > 9) currentStartMonth = 9;
+        currentSelectedDate = rightNow;
+    }
+    
+    renderTripleCalendar();
+    updatePageWithBookFlip(currentSelectedDate, 'click');
+</script>
+</body>
+</html>
+
+
